@@ -1,4 +1,3 @@
-
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Graphics;
@@ -6,9 +5,8 @@ import java.awt.Graphics2D;
 import javax.swing.Timer;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import java.awt.image.BufferedImage;
 import java.util.*;
-import javax.swing.Box;
+import org.w3c.dom.Node;
 
 public class App {
 
@@ -41,6 +39,7 @@ class wall{
         this.opposite_y=y2;
     }
 }
+
 
 class maze extends JPanel {
 
@@ -140,12 +139,18 @@ class maze extends JPanel {
 
     // timer for each drawing step
     public void startdraw() {
-        Timer timer = new Timer(50, e -> {
-            step_by_stepMaze();
+        Timer timer = new Timer(10, e -> {
+            
             if (wall_coordinates.isEmpty()) {
+                currentwall=null;
+                repaint();
                 ((Timer) e.getSource()).stop();
+
+                
             }
+            step_by_stepMaze();
         });
+        
         timer.start();
     }
 
@@ -154,3 +159,258 @@ class maze extends JPanel {
         return x >= 0 && x < this.maze_arr.length && y >= 0 && y < this.maze_arr[0].length;
     }
 }
+
+
+class Point{
+    int x;
+    int y;
+    public Point(int x, int y){
+        this.x=x;
+        this.y=y;
+    }
+
+    public boolean equals(Object obj){
+        Point point = (Point) obj;
+        return x==point.x && y==point.y;
+    }
+
+    public int hashcode(){
+        return Objects.hash(x,y);
+    }
+}
+
+interface SolverInterface{
+    boolean isDone();
+    void step_by_stepSolver();
+    List<Point> visitedNodes();
+    Point getNode();
+    List<Point> getCurrentPath();
+}
+
+
+abstract class Solver implements SolverInterface{
+    int maze_arr[][];
+    int cols;
+    int rows;
+    
+
+    public Solver(int maze[][], int cols, int rows){
+        this.maze_arr=maze;
+        this.cols=cols;
+        this.rows=rows;
+    }
+
+    public abstract void step_by_stepSolver();
+
+    public abstract boolean isDone();
+
+
+
+    // checks coordinates if in boudns
+    public boolean inbounds(int x, int y) {
+        return x >= 0 && x < this.maze_arr.length && y >= 0 && y < this.maze_arr[0].length;
+    }
+
+}
+
+
+
+class DFS_Solver extends Solver{
+
+    List<Point> visitedNodes = new ArrayList<Point>();
+    Point currentNode;
+    List<Point> getCurrentPath = new ArrayList<Point>();
+    Stack<Point> Nodes = new Stack<Point>();
+    Map<Point,Point> parentMap = new HashMap<Point,Point>();
+    Point endPoint = new Point(cols-1,rows-1);
+    public DFS_Solver(int[][] maze, int cols, int rows) {
+        super(maze, cols, rows);
+        Point start = new Point(1,1);
+        Nodes.add(start);
+        this.currentNode=start;
+    }
+
+    
+    public void step_by_stepSolver() {
+        if(Nodes.isEmpty()){
+            return;
+        }
+        else{
+           Point current = Nodes.pop();
+           this.currentNode=current;
+           visitedNodes.add(current);
+           Point up = new Point (current.x-1,current.y);
+           if(!visitedNodes.contains(up)&&!Nodes.contains(up)){
+                if(inbounds(current.x-1,current.y)&& maze_arr[current.x-1][current.y]==0){
+                    Nodes.push(up);
+                    parentMap.put(up,current);
+                }
+            }
+            Point down = new Point (current.x+1,current.y);
+            if(!visitedNodes.contains(down)&&!Nodes.contains(down)){
+                if(inbounds(current.x+1,current.y)&& maze_arr[current.x+1][current.y]==0){
+                    Nodes.push(down);
+                    parentMap.put(down,current);
+                }
+            }
+            Point left = new Point (current.x,current.y-1);
+            if(!visitedNodes.contains(left)&&!Nodes.contains(left)){
+                if(inbounds(current.x,current.y-1)&& maze_arr[current.x][current.y-1]==0){
+                    Nodes.push(left);
+                    parentMap.put(left,current);
+                }
+            }
+            Point right = new Point (current.x,current.y+1);
+            if(!visitedNodes.contains(right)&&!Nodes.contains(right)){
+                if(inbounds(current.x,current.y+1)&& maze_arr[current.x][current.y+1]==0){
+                    Nodes.push(right);
+                    parentMap.put(right,current);
+                } 
+            }
+
+        }
+    }
+
+    
+    public boolean isDone() {
+        return currentNode.equals(endPoint)||Nodes.isEmpty();
+    }
+
+    
+    public List<Point> visitedNodes() {
+        return visitedNodes;
+    }
+
+    
+    public Point getNode() {
+        return currentNode;
+    }
+
+    
+    public List<Point> getCurrentPath() {
+        List<Point> path = new ArrayList<>();
+        if(!isDone()||!currentNode.equals(endPoint)){
+            return path;
+        }
+        Point step = endPoint;
+        while(step!=null){
+            path.add(0,step);
+            step=parentMap.get(step);
+        }
+        return path;
+    }
+
+}
+
+
+class BFS_Solver extends Solver{
+    List<Point> visitedNodes;
+    Point currentNode;
+    List<Point> getCurrentPath;
+
+    public BFS_Solver(int[][] maze, int cols, int rows) {
+        super(maze, cols, rows);
+    }
+
+    
+    public void step_by_stepSolver() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public boolean isDone() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> visitedNodes() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public Point getNode() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> getCurrentPath() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+}
+
+
+class Djikstra_Solver extends Solver{
+    List<Point> visitedNodes;
+    Point currentNode;
+    List<Point> getCurrentPath;
+
+    public Djikstra_Solver(int[][] maze, int cols, int rows) {
+        super(maze, cols, rows);
+    }
+
+    
+    public void step_by_stepSolver() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public boolean isDone() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> visitedNodes() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public Point getNode() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> getCurrentPath() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+}
+
+
+class AStar_Solver extends Solver{
+    List<Point> visitedNodes;
+    Point currentNode;
+    List<Point> getCurrentPath;
+
+    public AStar_Solver(int[][] maze, int cols, int rows) {
+        super(maze, cols, rows);
+    }
+
+    
+    public void step_by_stepSolver() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public boolean isDone() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> visitedNodes() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public Point getNode() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+    
+    public List<Point> getCurrentPath() {
+        throw new UnsupportedOperationException("Not supported yet.");
+    }
+
+}
+
+
