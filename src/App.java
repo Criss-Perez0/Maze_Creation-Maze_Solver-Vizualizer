@@ -42,6 +42,7 @@ class wall {
     }
 }
 
+
 class maze extends JPanel {
 
     int cols = 60;
@@ -50,6 +51,7 @@ class maze extends JPanel {
     wall currentwall;
     ArrayList<wall> wall_coordinates = new ArrayList<wall>();
     DFS_Solver solver_DFS = new DFS_Solver(maze_arr, cols, rows);
+    BFS_Solver solver_BFS = new BFS_Solver(maze_arr, cols, rows);
 
     public maze() {
         setBackground(Color.BLACK);
@@ -90,23 +92,38 @@ class maze extends JPanel {
 
 
         // DFS drawing logic
+        // g2d.setColor(Color.gray);
+        // for(Point p : solver_DFS.visitedNodes()){
+        //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+        // }
+
+        // Point current = solver_DFS.getNode();
+        // if(current!=null){
+        //     g2d.setColor(Color.yellow);
+        //     g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
+        // }
+        // if(solver_DFS.isDone()){
+        //     g2d.setColor(Color.green);
+        //     for(Point p: solver_DFS.getCurrentPath()){
+        //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+        //     }
+        // }
+
         g2d.setColor(Color.gray);
-        for(Point p : solver_DFS.visitedNodes()){
+        for(Point p : solver_BFS.visitedNodes()){
             g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
         }
-
-        Point current = solver_DFS.getNode();
+        Point current = solver_BFS.getNode();
         if(current!=null){
             g2d.setColor(Color.yellow);
             g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
         }
-        if(solver_DFS.isDone()){
+        if(solver_BFS.isDone()){
             g2d.setColor(Color.green);
-            for(Point p: solver_DFS.getCurrentPath()){
+            for(Point p: solver_BFS.getCurrentPath()){
             g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
             }
         }
-
 
     }
 
@@ -135,7 +152,7 @@ class maze extends JPanel {
             }
             if (inbounds(w.opposite_x, w.opposite_y - 2) && maze_arr[w.opposite_x][w.opposite_y - 2] == 1) {
                 wall_coordinates.add(new wall(w.opposite_x, w.opposite_y - 1, w.opposite_x, w.opposite_y - 2));
-            }
+            }   
         }
 
         wall_coordinates.remove(randindex);
@@ -167,6 +184,24 @@ class maze extends JPanel {
 
             if (wall_coordinates.isEmpty()) {
 
+                // if (!solverstarted) {
+                //     solverstarted=true;
+                //     currentwall = null;
+                //     repaint();
+                //     ((Timer) e.getSource()).stop();
+                    
+
+                //     Timer Solver_Timer = new Timer(25, r -> {
+                //         if (!solver_DFS.isDone()) {
+                //             solver_DFS.step_by_stepSolver();
+                //             repaint();
+                //         } else {
+                //             ((Timer) r.getSource()).stop();
+                //         }
+                //     });
+                //     Solver_Timer.start();
+                // }
+
                 if (!solverstarted) {
                     solverstarted=true;
                     currentwall = null;
@@ -175,8 +210,8 @@ class maze extends JPanel {
                     
 
                     Timer Solver_Timer = new Timer(25, r -> {
-                        if (!solver_DFS.isDone()) {
-                            solver_DFS.step_by_stepSolver();
+                        if (!solver_BFS.isDone()) {
+                            solver_BFS.step_by_stepSolver();
                             repaint();
                         } else {
                             ((Timer) r.getSource()).stop();
@@ -337,32 +372,84 @@ class DFS_Solver extends Solver {
 
 class BFS_Solver extends Solver {
 
-    List<Point> visitedNodes;
+     List<Point> visitedNodes = new ArrayList<Point>();
     Point currentNode;
-    List<Point> getCurrentPath;
+    List<Point> getCurrentPath = new ArrayList<Point>();
+    ArrayList<Point> Nodes = new ArrayList<Point>();
+    Map<Point, Point> parentMap = new HashMap<Point, Point>();
+    Point endPoint = new Point(cols - 1, rows - 1);
 
     public BFS_Solver(int[][] maze, int cols, int rows) {
         super(maze, cols, rows);
+        Point start = new Point(1,1);
+        Nodes.add(start);
+        this.currentNode=start;
     }
 
+    
     public void step_by_stepSolver() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        if (Nodes.isEmpty()) {
+            return;
+        } else {
+            Point current = Nodes.remove(0);
+            this.currentNode = current;
+            visitedNodes.add(current);
+            Point up = new Point(current.x - 1, current.y);
+            if (!visitedNodes.contains(up) && !Nodes.contains(up)) {
+                if (inbounds(current.x - 1, current.y) && maze_arr[current.x - 1][current.y] == 0) {
+                    Nodes.add(up);
+                    parentMap.put(up, current);
+                }
+            }
+            Point down = new Point(current.x + 1, current.y);
+            if (!visitedNodes.contains(down) && !Nodes.contains(down)) {
+                if (inbounds(current.x + 1, current.y) && maze_arr[current.x + 1][current.y] == 0) {
+                    Nodes.add(down);
+                    parentMap.put(down, current);
+                }
+            }
+            Point left = new Point(current.x, current.y - 1);
+            if (!visitedNodes.contains(left) && !Nodes.contains(left)) {
+                if (inbounds(current.x, current.y - 1) && maze_arr[current.x][current.y - 1] == 0) {
+                    Nodes.add(left);
+                    parentMap.put(left, current);
+                }
+            }
+            Point right = new Point(current.x, current.y + 1);
+            if (!visitedNodes.contains(right) && !Nodes.contains(right)) {
+                if (inbounds(current.x, current.y + 1) && maze_arr[current.x][current.y + 1] == 0) {
+                    Nodes.add(right);
+                    parentMap.put(right, current);
+                }
+            }
+
+        }
     }
 
     public boolean isDone() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return currentNode.equals(endPoint) || Nodes.isEmpty() ;
     }
 
     public List<Point> visitedNodes() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return visitedNodes;
     }
 
     public Point getNode() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        return this.currentNode;
     }
 
     public List<Point> getCurrentPath() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        
+        List<Point> path = new ArrayList<>();
+        if (!isDone() || !currentNode.equals(endPoint)) {
+            return path;
+        }
+        Point step = endPoint;
+        while (step != null) {
+            path.add(0, step);
+            step = parentMap.get(step);
+        }
+        return path;
     }
 
 }
