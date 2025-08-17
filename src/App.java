@@ -7,6 +7,7 @@ import javax.swing.Timer;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import java.util.*;
+import java.util.function.Consumer;
 import org.w3c.dom.Node;
 
 public class App {
@@ -23,7 +24,8 @@ public class App {
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        panel.generateMaze();
+        // shows the full maze completed instead of making it
+        //panel.GenerateMaze();
     }
 }
 
@@ -42,6 +44,15 @@ class wall {
     }
 }
 
+interface MazeGenerator {
+
+    public void GenerateMaze();
+
+    public void initialize();
+
+    public boolean step();
+
+}
 
 class maze extends JPanel {
 
@@ -52,6 +63,7 @@ class maze extends JPanel {
     ArrayList<wall> wall_coordinates = new ArrayList<wall>();
     DFS_Solver solver_DFS = new DFS_Solver(maze_arr, cols, rows);
     BFS_Solver solver_BFS = new BFS_Solver(maze_arr, cols, rows);
+    MazeGenerator generator;
 
     public maze() {
         setBackground(Color.BLACK);
@@ -62,6 +74,20 @@ class maze extends JPanel {
                 maze_arr[i][j] = 1;
             }
         }
+        generator = new Prims_Algorithm_Maze(cols, rows, maze_arr, wall_coordinates, w -> currentwall = w);
+        generator.initialize();
+        startdraw();
+    }
+
+    public void GenerateMaze(){
+        if(generator!=null){
+            generator.GenerateMaze();
+        }
+    }
+
+    public void step_by_stepMaze(){
+        generator.step();
+        repaint();
     }
 
     @Override
@@ -72,7 +98,6 @@ class maze extends JPanel {
         g2d.fillRect(0, 0, getWidth(), getHeight());
         int cellWidth = getWidth() / cols;
         int cellHeight = getHeight() / rows;
-
 
         // Maze drawing logic
         for (int i = 0; i < cols; i++) {
@@ -90,13 +115,11 @@ class maze extends JPanel {
             g2d.fillRect(currentwall.opposite_x * cellWidth, currentwall.opposite_y * cellHeight, cellWidth, cellHeight);
         }
 
-
         // DFS drawing logic
         // g2d.setColor(Color.gray);
         // for(Point p : solver_DFS.visitedNodes()){
         //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
         // }
-
         // Point current = solver_DFS.getNode();
         // if(current!=null){
         //     g2d.setColor(Color.yellow);
@@ -108,72 +131,22 @@ class maze extends JPanel {
         //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
         //     }
         // }
-
         g2d.setColor(Color.gray);
-        for(Point p : solver_BFS.visitedNodes()){
+        for (Point p : solver_BFS.visitedNodes()) {
             g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
         }
         Point current = solver_BFS.getNode();
-        if(current!=null){
+        if (current != null) {
             g2d.setColor(Color.yellow);
             g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
         }
-        if(solver_BFS.isDone()){
+        if (solver_BFS.isDone()) {
             g2d.setColor(Color.green);
-            for(Point p: solver_BFS.getCurrentPath()){
-            g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+            for (Point p : solver_BFS.getCurrentPath()) {
+                g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
             }
         }
 
-    }
-
-    public void step_by_stepMaze() {
-        //maze generation after initial setup
-        if (wall_coordinates == null || wall_coordinates.isEmpty()) {
-            return;
-        }
-
-        int randindex = (int) (Math.random() * wall_coordinates.size());
-        wall w = wall_coordinates.get(randindex);
-        int x = w.wall_x;
-        int y = w.wall_y;
-        currentwall = w;
-        if (maze_arr[w.opposite_x][w.opposite_y] == 1) {
-            maze_arr[x][y] = 0;
-            maze_arr[w.opposite_x][w.opposite_y] = 0;
-            if (inbounds(w.opposite_x + 2, w.opposite_y) && maze_arr[w.opposite_x + 2][w.opposite_y] == 1) {
-                wall_coordinates.add(new wall(w.opposite_x + 1, w.opposite_y, w.opposite_x + 2, w.opposite_y));
-            }
-            if (inbounds(w.opposite_x - 2, w.opposite_y) && maze_arr[w.opposite_x - 2][w.opposite_y] == 1) {
-                wall_coordinates.add(new wall(w.opposite_x - 1, w.opposite_y, w.opposite_x - 2, w.opposite_y));
-            }
-            if (inbounds(w.opposite_x, w.opposite_y + 2) && maze_arr[w.opposite_x][w.opposite_y + 2] == 1) {
-                wall_coordinates.add(new wall(w.opposite_x, w.opposite_y + 1, w.opposite_x, w.opposite_y + 2));
-            }
-            if (inbounds(w.opposite_x, w.opposite_y - 2) && maze_arr[w.opposite_x][w.opposite_y - 2] == 1) {
-                wall_coordinates.add(new wall(w.opposite_x, w.opposite_y - 1, w.opposite_x, w.opposite_y - 2));
-            }   
-        }
-
-        wall_coordinates.remove(randindex);
-
-        repaint();
-    }
-
-    // initial maze setup
-    public void generateMaze() {
-
-        this.maze_arr[1][1] = 0;
-        // setting the beginning of prims algorithm
-
-        if (inbounds(1, 2) && maze_arr[1][2] == 1) {
-            wall_coordinates.add(new wall(1, 2, 1, 3));
-        }
-
-        if (inbounds(2, 1) && maze_arr[2][1] == 1) {
-            wall_coordinates.add(new wall(2, 1, 3, 1));
-        }
-        startdraw();
     }
 
     private boolean solverstarted = false;
@@ -189,8 +162,6 @@ class maze extends JPanel {
                 //     currentwall = null;
                 //     repaint();
                 //     ((Timer) e.getSource()).stop();
-                    
-
                 //     Timer Solver_Timer = new Timer(25, r -> {
                 //         if (!solver_DFS.isDone()) {
                 //             solver_DFS.step_by_stepSolver();
@@ -201,13 +172,11 @@ class maze extends JPanel {
                 //     });
                 //     Solver_Timer.start();
                 // }
-
                 if (!solverstarted) {
-                    solverstarted=true;
+                    solverstarted = true;
                     currentwall = null;
                     repaint();
                     ((Timer) e.getSource()).stop();
-                    
 
                     Timer Solver_Timer = new Timer(25, r -> {
                         if (!solver_BFS.isDone()) {
@@ -226,10 +195,83 @@ class maze extends JPanel {
         MazeGeneration_Timer.start();
     }
 
+}
+
+class Prims_Algorithm_Maze implements MazeGenerator {
+
+    int cols;
+    int rows;
+    int maze_arr[][];
+    Consumer<wall> setCurrentWall;
+    ArrayList<wall> wall_coordinates;
+
+    public Prims_Algorithm_Maze(int cols, int rows, int maze_arr[][], ArrayList<wall> wall_coordinates ,Consumer<wall> setCurrentWall) {
+        this.cols = cols;
+        this.rows = rows;
+        this.maze_arr = maze_arr;
+        this.wall_coordinates=wall_coordinates;
+        this.setCurrentWall = setCurrentWall;
+    }
+
+    public void GenerateMaze() {
+        initialize();
+        while(step()){
+
+        }
+    }
+
     // checks coordinates if in boudns
     public boolean inbounds(int x, int y) {
         return x >= 0 && x < this.maze_arr.length && y >= 0 && y < this.maze_arr[0].length;
     }
+
+    public void initialize() {
+        // initial maze setup
+        this.maze_arr[1][1] = 0;
+        // setting the beginning of prims algorithm
+
+        if (inbounds(1, 2) && maze_arr[1][2] == 1) {
+            wall_coordinates.add(new wall(1, 2, 1, 3));
+        }
+
+        if (inbounds(2, 1) && maze_arr[2][1] == 1) {
+            wall_coordinates.add(new wall(2, 1, 3, 1));
+        }
+
+    }
+
+    public boolean step() {
+        //maze generation after initial setup
+        if (wall_coordinates == null || wall_coordinates.isEmpty()) {
+            return false;
+        }
+
+        int randindex = (int) (Math.random() * wall_coordinates.size());
+        wall w = wall_coordinates.get(randindex);
+        int x = w.wall_x;
+        int y = w.wall_y;
+        setCurrentWall.accept(w);
+        if (maze_arr[w.opposite_x][w.opposite_y] == 1) {
+            maze_arr[x][y] = 0;
+            maze_arr[w.opposite_x][w.opposite_y] = 0;
+            if (inbounds(w.opposite_x + 2, w.opposite_y) && maze_arr[w.opposite_x + 2][w.opposite_y] == 1) {
+                wall_coordinates.add(new wall(w.opposite_x + 1, w.opposite_y, w.opposite_x + 2, w.opposite_y));
+            }
+            if (inbounds(w.opposite_x - 2, w.opposite_y) && maze_arr[w.opposite_x - 2][w.opposite_y] == 1) {
+                wall_coordinates.add(new wall(w.opposite_x - 1, w.opposite_y, w.opposite_x - 2, w.opposite_y));
+            }
+            if (inbounds(w.opposite_x, w.opposite_y + 2) && maze_arr[w.opposite_x][w.opposite_y + 2] == 1) {
+                wall_coordinates.add(new wall(w.opposite_x, w.opposite_y + 1, w.opposite_x, w.opposite_y + 2));
+            }
+            if (inbounds(w.opposite_x, w.opposite_y - 2) && maze_arr[w.opposite_x][w.opposite_y - 2] == 1) {
+                wall_coordinates.add(new wall(w.opposite_x, w.opposite_y - 1, w.opposite_x, w.opposite_y - 2));
+            }
+        }
+
+        wall_coordinates.remove(randindex);
+        return true;
+    }
+
 }
 
 class Point {
@@ -372,7 +414,7 @@ class DFS_Solver extends Solver {
 
 class BFS_Solver extends Solver {
 
-     List<Point> visitedNodes = new ArrayList<Point>();
+    List<Point> visitedNodes = new ArrayList<Point>();
     Point currentNode;
     List<Point> getCurrentPath = new ArrayList<Point>();
     ArrayList<Point> Nodes = new ArrayList<Point>();
@@ -381,12 +423,11 @@ class BFS_Solver extends Solver {
 
     public BFS_Solver(int[][] maze, int cols, int rows) {
         super(maze, cols, rows);
-        Point start = new Point(1,1);
+        Point start = new Point(1, 1);
         Nodes.add(start);
-        this.currentNode=start;
+        this.currentNode = start;
     }
 
-    
     public void step_by_stepSolver() {
         if (Nodes.isEmpty()) {
             return;
@@ -427,7 +468,7 @@ class BFS_Solver extends Solver {
     }
 
     public boolean isDone() {
-        return currentNode.equals(endPoint) || Nodes.isEmpty() ;
+        return currentNode.equals(endPoint) || Nodes.isEmpty();
     }
 
     public List<Point> visitedNodes() {
@@ -439,7 +480,7 @@ class BFS_Solver extends Solver {
     }
 
     public List<Point> getCurrentPath() {
-        
+
         List<Point> path = new ArrayList<>();
         if (!isDone() || !currentNode.equals(endPoint)) {
             return path;
