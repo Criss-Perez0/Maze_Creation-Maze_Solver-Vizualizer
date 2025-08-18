@@ -4,10 +4,16 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.Timer;
+import javax.swing.Box;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
+
 import java.util.*;
 import java.util.function.Consumer;
+import javax.swing.border.EmptyBorder;
 import org.w3c.dom.Node;
 
 public class App {
@@ -19,13 +25,33 @@ public class App {
         JFrame frame = new JFrame();
         cols = 60;
         rows = 40;
+
+        JPanel buttonpanel_Maze_Algorithm = new JPanel();
+        buttonpanel_Maze_Algorithm.setLayout(new BoxLayout(buttonpanel_Maze_Algorithm, BoxLayout.Y_AXIS));
+        JButton prim = new JButton("Prim's Maze Algorithm");
+        buttonpanel_Maze_Algorithm.add(prim);
+
+        JPanel buttonpanel_Solver_Algorithm = new JPanel();
+        buttonpanel_Solver_Algorithm.setLayout(new BoxLayout(buttonpanel_Solver_Algorithm, BoxLayout.Y_AXIS));
+        JButton DFS = new JButton("Depth First Search Solver    ");
+        JButton BFS = new JButton("Breadth First Search Solver");
+        buttonpanel_Solver_Algorithm.add(DFS);
+        buttonpanel_Solver_Algorithm.add(Box.createVerticalStrut(20));
+        buttonpanel_Solver_Algorithm.add(BFS);
+
         maze panel = new maze();
-        frame.add(panel);
+        
+        JSplitPane button_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonpanel_Maze_Algorithm,buttonpanel_Solver_Algorithm);
+        JSplitPane pane_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, button_organizer, panel);
+        
+        
+        frame.add(pane_organizer);
         frame.pack();
         frame.setVisible(true);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // shows the full maze completed instead of making it
         //panel.GenerateMaze();
+        
     }
 }
 
