@@ -4,6 +4,10 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.Timer;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -23,6 +27,10 @@ public class App {
 
     static int cols;
     static int rows;
+    static maze panel = new maze();
+    public static String selected_solver = null;
+    static boolean maze_in_progress;
+    static boolean solver_in_progress=false;
 
     public static void main(String[] args) throws Exception {
         JFrame frame = new JFrame();
@@ -37,6 +45,12 @@ public class App {
         JLabel maze_label = new JLabel(" Maze Creation Algorithms ");
         maze_label.setFont(title_font);
         JButton prim = new JButton(" Prim's Maze Algorithm      ");
+        prim.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                panel.startdraw();
+                maze_in_progress = true;
+            }
+        });
 
         buttonpanel_Maze_Algorithm.add(maze_label);
         buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
@@ -44,21 +58,34 @@ public class App {
         buttonpanel_Maze_Algorithm.add(prim);
         buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
 
-        
         JPanel buttonpanel_Solver_Algorithm = new JPanel();
         buttonpanel_Solver_Algorithm.setLayout(new BoxLayout(buttonpanel_Solver_Algorithm, BoxLayout.Y_AXIS));
         JLabel solver_label = new JLabel("  Maze Solver Algorithms ");
         solver_label.setFont(title_font);
         JButton DFS = new JButton(" Depth First Search Solver    ");
+        DFS.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!(maze_in_progress) && !(solver_in_progress)) {
+                    selected_solver = "DFS";
+                    solver_in_progress=true;
+                }
+            }
+        });
         JButton BFS = new JButton(" Breadth First Search Solver");
+        BFS.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (!(maze_in_progress) && !(solver_in_progress)) {
+                    selected_solver = "BFS";
+                    solver_in_progress=true;
+                }
+            }
+        });
 
         buttonpanel_Solver_Algorithm.add(solver_label);
         buttonpanel_Solver_Algorithm.add(Box.createVerticalStrut(20));
         buttonpanel_Solver_Algorithm.add(DFS);
         buttonpanel_Solver_Algorithm.add(Box.createVerticalStrut(20));
         buttonpanel_Solver_Algorithm.add(BFS);
-
-        maze panel = new maze();
 
         JSplitPane button_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonpanel_Maze_Algorithm, buttonpanel_Solver_Algorithm);
         JSplitPane pane_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, button_organizer, panel);
@@ -92,8 +119,11 @@ class wall {
 
 // interface for multiple maze building algorithms
 interface MazeGenerator {
+
     public void GenerateMaze();
+
     public void initialize();
+
     public boolean step();
 }
 
@@ -119,7 +149,7 @@ class maze extends JPanel {
         }
         generator = new Prims_Algorithm_Maze(cols, rows, maze_arr, wall_coordinates, w -> currentwall = w);
         generator.initialize();
-        startdraw();
+
     }
 
     public void GenerateMaze() {
@@ -158,35 +188,41 @@ class maze extends JPanel {
             g2d.fillRect(currentwall.opposite_x * cellWidth, currentwall.opposite_y * cellHeight, cellWidth, cellHeight);
         }
 
-        // DFS drawing logic
-        // g2d.setColor(Color.gray);
-        // for(Point p : solver_DFS.visitedNodes()){
-        //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
-        // }
-        // Point current = solver_DFS.getNode();
-        // if(current!=null){
-        //     g2d.setColor(Color.yellow);
-        //     g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
-        // }
-        // if(solver_DFS.isDone()){
-        //     g2d.setColor(Color.green);
-        //     for(Point p: solver_DFS.getCurrentPath()){
-        //     g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
-        //     }
-        // }
-        g2d.setColor(Color.gray);
-        for (Point p : solver_BFS.visitedNodes()) {
-            g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
-        }
-        Point current = solver_BFS.getNode();
-        if (current != null) {
-            g2d.setColor(Color.yellow);
-            g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
-        }
-        if (solver_BFS.isDone()) {
-            g2d.setColor(Color.green);
-            for (Point p : solver_BFS.getCurrentPath()) {
+        if ("DFS".equals(App.selected_solver)) {
+            // DFS drawing logic 
+            g2d.setColor(Color.gray);
+            for (Point p : solver_DFS.visitedNodes()) {
                 g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+            }
+            Point current = solver_DFS.getNode();
+            if (current != null) {
+                g2d.setColor(Color.yellow);
+                g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
+            }
+            if (solver_DFS.isDone()) {
+                g2d.setColor(Color.green);
+                for (Point p : solver_DFS.getCurrentPath()) {
+                    g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+                }
+            }
+        }
+
+        if ("BFS".equals(App.selected_solver)) {
+            // BFS drawing logic
+            g2d.setColor(Color.gray);
+            for (Point p : solver_BFS.visitedNodes()) {
+                g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+            }
+            Point current = solver_BFS.getNode();
+            if (current != null) {
+                g2d.setColor(Color.yellow);
+                g2d.fillRect(current.x * cellWidth, current.y * cellHeight, cellWidth, cellHeight);
+            }
+            if (solver_BFS.isDone()) {
+                g2d.setColor(Color.green);
+                for (Point p : solver_BFS.getCurrentPath()) {
+                    g2d.fillRect(p.x * cellWidth, p.y * cellHeight, cellWidth, cellHeight);
+                }
             }
         }
 
@@ -199,37 +235,40 @@ class maze extends JPanel {
         Timer MazeGeneration_Timer = new Timer(25, e -> {
 
             if (wall_coordinates.isEmpty()) {
+                if ("DFS".equals(App.selected_solver)) {
+                    if (!solverstarted) {
+                        solverstarted = true;
+                        currentwall = null;
+                        repaint();
+                        ((Timer) e.getSource()).stop();
+                        Timer Solver_Timer = new Timer(25, r -> {
+                            if (!solver_DFS.isDone()) {
+                                solver_DFS.step_by_stepSolver();
+                                repaint();
+                            } else {
+                                ((Timer) r.getSource()).stop();
+                            }
+                        });
+                        Solver_Timer.start();
+                    }
+                }
+                if ("BFS".equals(App.selected_solver)) {
+                    if (!solverstarted) {
+                        solverstarted = true;
+                        currentwall = null;
+                        repaint();
+                        ((Timer) e.getSource()).stop();
 
-                // if (!solverstarted) {
-                //     solverstarted=true;
-                //     currentwall = null;
-                //     repaint();
-                //     ((Timer) e.getSource()).stop();
-                //     Timer Solver_Timer = new Timer(25, r -> {
-                //         if (!solver_DFS.isDone()) {
-                //             solver_DFS.step_by_stepSolver();
-                //             repaint();
-                //         } else {
-                //             ((Timer) r.getSource()).stop();
-                //         }
-                //     });
-                //     Solver_Timer.start();
-                // }
-                if (!solverstarted) {
-                    solverstarted = true;
-                    currentwall = null;
-                    repaint();
-                    ((Timer) e.getSource()).stop();
-
-                    Timer Solver_Timer = new Timer(25, r -> {
-                        if (!solver_BFS.isDone()) {
-                            solver_BFS.step_by_stepSolver();
-                            repaint();
-                        } else {
-                            ((Timer) r.getSource()).stop();
-                        }
-                    });
-                    Solver_Timer.start();
+                        Timer Solver_Timer = new Timer(25, r -> {
+                            if (!solver_BFS.isDone()) {
+                                solver_BFS.step_by_stepSolver();
+                                repaint();
+                            } else {
+                                ((Timer) r.getSource()).stop();
+                            }
+                        });
+                        Solver_Timer.start();
+                    }
                 }
             }
             step_by_stepMaze();
