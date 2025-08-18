@@ -28,22 +28,23 @@ public class App {
         JFrame frame = new JFrame();
         cols = 60;
         rows = 40;
+        // title font for collumns
         Font title_font = new Font("Monospaced", Font.BOLD, 12);
 
-
+        // setting up buttonpanel for different maze algorithms
         JPanel buttonpanel_Maze_Algorithm = new JPanel();
         buttonpanel_Maze_Algorithm.setLayout(new BoxLayout(buttonpanel_Maze_Algorithm, BoxLayout.Y_AXIS));
         JLabel maze_label = new JLabel(" Maze Creation Algorithms ");
         maze_label.setFont(title_font);
         JButton prim = new JButton(" Prim's Maze Algorithm      ");
 
-        
         buttonpanel_Maze_Algorithm.add(maze_label);
         buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
-       
+
         buttonpanel_Maze_Algorithm.add(prim);
         buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
 
+        
         JPanel buttonpanel_Solver_Algorithm = new JPanel();
         buttonpanel_Solver_Algorithm.setLayout(new BoxLayout(buttonpanel_Solver_Algorithm, BoxLayout.Y_AXIS));
         JLabel solver_label = new JLabel("  Maze Solver Algorithms ");
@@ -58,10 +59,10 @@ public class App {
         buttonpanel_Solver_Algorithm.add(BFS);
 
         maze panel = new maze();
-        
-        JSplitPane button_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonpanel_Maze_Algorithm,buttonpanel_Solver_Algorithm);
+
+        JSplitPane button_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonpanel_Maze_Algorithm, buttonpanel_Solver_Algorithm);
         JSplitPane pane_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, button_organizer, panel);
-        
+
         frame.setTitle("Maze Visualizer/Solver");
         frame.add(pane_organizer);
         frame.pack();
@@ -69,10 +70,11 @@ public class App {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // shows the full maze completed instead of making it
         //panel.GenerateMaze();
-        
+
     }
 }
 
+// creating wall class for prims algorithm
 class wall {
 
     int wall_x;
@@ -88,14 +90,11 @@ class wall {
     }
 }
 
+// interface for multiple maze building algorithms
 interface MazeGenerator {
-
     public void GenerateMaze();
-
     public void initialize();
-
     public boolean step();
-
 }
 
 class maze extends JPanel {
@@ -123,13 +122,13 @@ class maze extends JPanel {
         startdraw();
     }
 
-    public void GenerateMaze(){
-        if(generator!=null){
+    public void GenerateMaze() {
+        if (generator != null) {
             generator.GenerateMaze();
         }
     }
 
-    public void step_by_stepMaze(){
+    public void step_by_stepMaze() {
         generator.step();
         repaint();
     }
@@ -249,17 +248,17 @@ class Prims_Algorithm_Maze implements MazeGenerator {
     Consumer<wall> setCurrentWall;
     ArrayList<wall> wall_coordinates;
 
-    public Prims_Algorithm_Maze(int cols, int rows, int maze_arr[][], ArrayList<wall> wall_coordinates ,Consumer<wall> setCurrentWall) {
+    public Prims_Algorithm_Maze(int cols, int rows, int maze_arr[][], ArrayList<wall> wall_coordinates, Consumer<wall> setCurrentWall) {
         this.cols = cols;
         this.rows = rows;
         this.maze_arr = maze_arr;
-        this.wall_coordinates=wall_coordinates;
+        this.wall_coordinates = wall_coordinates;
         this.setCurrentWall = setCurrentWall;
     }
 
     public void GenerateMaze() {
         initialize();
-        while(step()){
+        while (step()) {
 
         }
     }
