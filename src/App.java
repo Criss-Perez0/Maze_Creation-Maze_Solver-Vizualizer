@@ -1,6 +1,7 @@
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import javax.swing.Timer;
@@ -13,6 +14,8 @@ import javax.swing.JSplitPane;
 
 import java.util.*;
 import java.util.function.Consumer;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
 import javax.swing.border.EmptyBorder;
 import org.w3c.dom.Node;
 
@@ -25,16 +28,31 @@ public class App {
         JFrame frame = new JFrame();
         cols = 60;
         rows = 40;
+        Font title_font = new Font("Monospaced", Font.BOLD, 12);
+
 
         JPanel buttonpanel_Maze_Algorithm = new JPanel();
         buttonpanel_Maze_Algorithm.setLayout(new BoxLayout(buttonpanel_Maze_Algorithm, BoxLayout.Y_AXIS));
-        JButton prim = new JButton("Prim's Maze Algorithm");
+        JLabel maze_label = new JLabel(" Maze Creation Algorithms ");
+        maze_label.setFont(title_font);
+        JButton prim = new JButton(" Prim's Maze Algorithm      ");
+
+        
+        buttonpanel_Maze_Algorithm.add(maze_label);
+        buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
+       
         buttonpanel_Maze_Algorithm.add(prim);
+        buttonpanel_Maze_Algorithm.add(Box.createVerticalStrut(20));
 
         JPanel buttonpanel_Solver_Algorithm = new JPanel();
         buttonpanel_Solver_Algorithm.setLayout(new BoxLayout(buttonpanel_Solver_Algorithm, BoxLayout.Y_AXIS));
-        JButton DFS = new JButton("Depth First Search Solver    ");
-        JButton BFS = new JButton("Breadth First Search Solver");
+        JLabel solver_label = new JLabel("  Maze Solver Algorithms ");
+        solver_label.setFont(title_font);
+        JButton DFS = new JButton(" Depth First Search Solver    ");
+        JButton BFS = new JButton(" Breadth First Search Solver");
+
+        buttonpanel_Solver_Algorithm.add(solver_label);
+        buttonpanel_Solver_Algorithm.add(Box.createVerticalStrut(20));
         buttonpanel_Solver_Algorithm.add(DFS);
         buttonpanel_Solver_Algorithm.add(Box.createVerticalStrut(20));
         buttonpanel_Solver_Algorithm.add(BFS);
@@ -44,7 +62,7 @@ public class App {
         JSplitPane button_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, buttonpanel_Maze_Algorithm,buttonpanel_Solver_Algorithm);
         JSplitPane pane_organizer = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, button_organizer, panel);
         
-        
+        frame.setTitle("Maze Visualizer/Solver");
         frame.add(pane_organizer);
         frame.pack();
         frame.setVisible(true);
